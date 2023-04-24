@@ -28,7 +28,7 @@ make
 
 ```c
 Replay replay;
-int ret = circles_replay_fromfile(&replay, "test.osr"); // 0 == success
+circles_replay_fromfile(&replay, "test.osr"); // Returns 0 on success
 // See src/replay.h for available attributes
 ```
 
@@ -52,7 +52,7 @@ int read_callback(void* ctx, char* buf, size_t size) {
 ```c
 FILE* fp = fopen("test.osr", "rb");
 Replay replay;
-int result = circles_replay_parse(&replay, &read_callback, (void*) fp);
+circles_replay_parse(&replay, &read_callback, (void*) fp); // Returns 0 on success
 fclose(fp);
 // See src/replay.h for available attributes
 ```
