@@ -9,7 +9,7 @@ Easylzma is also a dependency, needed for replay decompression
 
 ## Building
 
-Install easylzma
+Install easylzma and run
 
 ```
 make
