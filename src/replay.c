@@ -281,13 +281,15 @@ static int _read_callback(void* ctx, char* buf, size_t size) {
 	FILE* fp = (FILE*) ctx;
 
 	if(fread(buf, size, 1, fp) != 1)
-		return 1;
+		return CIRCLES_ERROR_BROKEN_STREAM;
 
 	return 0;
 }
 
 int circles_replay_fromfile(Replay* replay, char* fname) {
 	FILE* fp = fopen(fname, "rb");
+	if(fp == NULL)
+		return CIRCLES_ERROR_OPEN_FAILED;
 
 	int res = circles_replay_parse(replay, &_read_callback, (void*) fp);
 	fclose(fp);
