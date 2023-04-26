@@ -24,7 +24,7 @@ int circles_fpstring_parse(char** ptr, CirclesCallbackRead callback, void* ctx) 
 	char bytes[16];
 
 	if((*callback)(ctx, &temp, 1))
-		return CIRCLES_ERROR_EOF;
+		return CIRCLES_ERROR_BROKEN_STREAM;
 
 	if(temp != 11) {
 		*ptr = NULL;
@@ -34,7 +34,7 @@ int circles_fpstring_parse(char** ptr, CirclesCallbackRead callback, void* ctx) 
 	int i = 0;
 	do {
 		if((*callback)(ctx, &temp, 1))
-			return CIRCLES_ERROR_EOF;
+			return CIRCLES_ERROR_BROKEN_STREAM;
 		bytes[i] = temp;
 		i++;
 	} while((temp & 128) != 0 && i < 16);
@@ -45,7 +45,7 @@ int circles_fpstring_parse(char** ptr, CirclesCallbackRead callback, void* ctx) 
 		return CIRCLES_ERROR_ALLOC_FAILED;
 
 	if((*callback)(ctx, *ptr, len))
-		return CIRCLES_ERROR_EOF;
+		return CIRCLES_ERROR_BROKEN_STREAM;
 
 	(*ptr)[len] = 0;
 

@@ -186,40 +186,40 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	(*callback)(ctx, devnull, 2);
 
 	if((*callback)(ctx, replay->replay_md5, 32))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	replay->replay_md5[32] = 0;
 
 	if((*callback)(ctx, (char*) &replay->hit300, 2))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	if((*callback)(ctx, (char*) &replay->hit100, 2))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	if((*callback)(ctx, (char*) &replay->hit50, 2))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	if((*callback)(ctx, (char*) &replay->geki, 2))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	if((*callback)(ctx, (char*) &replay->katu, 2))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	if((*callback)(ctx, (char*) &replay->miss, 2))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	if((*callback)(ctx, (char*) &replay->score, 4))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	if((*callback)(ctx, (char*) &replay->combo, 2))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	if((*callback)(ctx, (char*) &replay->perfect, 1))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	// Not really sure how we should interface this
 	if((*callback)(ctx, (char*) &replay->mods, 4))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	char* hp;
 	exitcode = circles_fpstring_parse(&hp, callback, ctx);
@@ -231,15 +231,15 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 		return cleanup(exitcode, replay);
 
 	if((*callback)(ctx, (char*) &replay->time, 8))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	size_t lzma_size;
 	if((*callback)(ctx, (char*) &lzma_size, 4))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	char* lzma = (char*) malloc(lzma_size);
 	if((*callback)(ctx, lzma, lzma_size))
-		return cleanup(CIRCLES_ERROR_EOF, replay);
+		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
 
 	DataStream ds;
 	ds.in_size = lzma_size;
