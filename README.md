@@ -59,6 +59,6 @@ fclose(fp);
 
 ### Dealloc
 
-```
+```c
 circles_replay_end(&replay);
 ```
