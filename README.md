@@ -2,10 +2,10 @@
 
 osu! Replay parser
 
-This library implements [easylzma](https://github.com/lloyd/easylzma)-like api,
+This library implements callback api,
 which allows the user to parse replays directly from memory, without having to save them to disk.
 
-Easylzma is also a dependency, needed for replay decompression
+[Easylzma](https://github.com/lloyd/easylzma) is the only dependency, needed for replay decompression
 
 ## Building
 
