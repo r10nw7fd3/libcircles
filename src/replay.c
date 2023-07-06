@@ -160,20 +160,19 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	replay->frames = NULL;
 	char devnull[512];
 
+#define CALLCHECK(dest, size, err) \
+	if((*callback)(ctx, (char*) dest, size)) { \
+		circles_replay_end(replay); \
+		return err; \
+	}
 
-	if((*callback)(ctx, (char*) &replay->mode, 1))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
+#define CALLCHECK_BSTREAM(dest, size) CALLCHECK(dest, size, CIRCLES_ERROR_BROKEN_STREAM)
 
-	if((*callback)(ctx, (char*) &replay->version, 4))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
+	CALLCHECK_BSTREAM(&replay->mode, 1)
+	CALLCHECK_BSTREAM(&replay->version, 4)
     // Skip identifier and uleb since we already know the length
-	if((*callback)(ctx, devnull, 2))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
-	if((*callback)(ctx, replay->map_md5, 32))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
+	CALLCHECK_BSTREAM(devnull, 2)
+	CALLCHECK_BSTREAM(replay->map_md5, 32)
 	replay->map_md5[32] = 0;
 
 	// And now the fun part
@@ -183,43 +182,22 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 		return cleanup(exitcode, replay);
 
 	// Same
-	(*callback)(ctx, devnull, 2);
+	CALLCHECK_BSTREAM(devnull, 2)
 
-	if((*callback)(ctx, replay->replay_md5, 32))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
+	CALLCHECK_BSTREAM(replay->replay_md5, 32)
 	replay->replay_md5[32] = 0;
 
-	if((*callback)(ctx, (char*) &replay->hit300, 2))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
-	if((*callback)(ctx, (char*) &replay->hit100, 2))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
-	if((*callback)(ctx, (char*) &replay->hit50, 2))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
-	if((*callback)(ctx, (char*) &replay->geki, 2))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
-	if((*callback)(ctx, (char*) &replay->katu, 2))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
-	if((*callback)(ctx, (char*) &replay->miss, 2))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
-	if((*callback)(ctx, (char*) &replay->score, 4))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
-	if((*callback)(ctx, (char*) &replay->combo, 2))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
-	if((*callback)(ctx, (char*) &replay->perfect, 1))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
-
+	CALLCHECK_BSTREAM(&replay->hit300, 2)
+	CALLCHECK_BSTREAM(&replay->hit100, 2)
+	CALLCHECK_BSTREAM(&replay->hit50, 2)
+	CALLCHECK_BSTREAM(&replay->geki, 2)
+	CALLCHECK_BSTREAM(&replay->katu, 2)
+	CALLCHECK_BSTREAM(&replay->miss, 2)
+	CALLCHECK_BSTREAM(&replay->score, 4)
+	CALLCHECK_BSTREAM(&replay->combo, 2)
+	CALLCHECK_BSTREAM(&replay->perfect, 1)
 	// Not really sure how we should interface this
-	if((*callback)(ctx, (char*) &replay->mods, 4))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
+	CALLCHECK_BSTREAM(&replay->mods, 4)
 
 	char* hp;
 	exitcode = circles_fpstring_parse(&hp, callback, ctx);
@@ -230,16 +208,13 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	if(exitcode)
 		return cleanup(exitcode, replay);
 
-	if((*callback)(ctx, (char*) &replay->time, 8))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
+	CALLCHECK_BSTREAM(&replay->time, 8)
 
 	size_t lzma_size;
-	if((*callback)(ctx, (char*) &lzma_size, 4))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
+	CALLCHECK_BSTREAM(&lzma_size, 4)
 
 	char* lzma = (char*) malloc(lzma_size);
-	if((*callback)(ctx, lzma, lzma_size))
-		return cleanup(CIRCLES_ERROR_BROKEN_STREAM, replay);
+	CALLCHECK_BSTREAM(lzma, lzma_size)
 
 	DataStream ds;
 	ds.in_size = lzma_size;
@@ -257,6 +232,8 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	if(exitcode)
 		return cleanup(exitcode, replay);
 
+#undef CALLCHECK_BSTREAM
+#undef CALLCHECK
 	return 0;
 }
 
