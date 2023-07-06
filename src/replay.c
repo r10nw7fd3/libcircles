@@ -214,6 +214,8 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	CALLCHECK_BSTREAM(&lzma_size, 4)
 
 	char* lzma = (char*) malloc(lzma_size);
+	if(lzma == NULL)
+		return cleanup(CIRCLES_ERROR_ALLOC_FAILED, replay);
 	CALLCHECK_BSTREAM(lzma, lzma_size)
 
 	DataStream ds;
