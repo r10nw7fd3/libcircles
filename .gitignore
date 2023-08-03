@@ -3,4 +3,3 @@ hello*
 *.so
 *.o
 *.sw?
-include

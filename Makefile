@@ -1,10 +1,11 @@
 OUT=libcircles.so
-CFLAGS=-Wall -Wextra -std=c99 -O2 -fpic
+CFLAGS=-Wall -Wextra -std=c99 -O2 -fpic -Iinclude
 PREFIX?=/usr/local
+
 SRC=$(wildcard src/*.c)
 OBJ=$(SRC:.c=.o)
 
-all: $(OUT) include
+all: $(OUT)
 
 $(OUT): $(OBJ)
 	$(CC) -shared -o $(OUT) $(OBJ) -leasylzma_s
@@ -14,11 +15,6 @@ $(OUT): $(OBJ)
 
 clean:
 	rm -f $(OUT) $(OBJ)
-	rm -rf include
-
-include: src/replay.h src/util.h
-	mkdir -p include/libcircles
-	cp -t include/libcircles src/replay.h src/util.h
 
 install: all
 	cp $(OUT) $(PREFIX)/lib
@@ -28,4 +24,4 @@ uninstall:
 	rm -f $(PREFIX)/lib/$(OUT)
 	rm -rf $(PREFIX)/include/libcircles
 
-.PHONY: all clean include install uninstall
+.PHONY: all clean install uninstall
