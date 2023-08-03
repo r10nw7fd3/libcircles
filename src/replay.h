@@ -35,7 +35,7 @@ typedef struct { // stdint types because why not
 	size_t hp_num; // Number of HPSequence elements
 	HPSequence* hp;
 	int64_t time; // Time in windows ticks, use circles_jesustime_to_unixms to convert this to unix timestamp
-	size_t frame_num; // Number of ReplayFrame elements
+	size_t frames_num; // Number of ReplayFrame elements
 	ReplayFrame* frames;
 	int32_t id;
 	int64_t mod_info;

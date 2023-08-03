@@ -28,7 +28,7 @@ int circles_fpstring_parse(char** ptr, CirclesCallbackRead callback, void* ctx) 
 
 	if(temp != 11) {
 		*ptr = NULL;
-		return CIRCLES_WARNING_EMPTY_STR;
+		return 0;
 	}
 
 	int i = 0;

@@ -11,6 +11,9 @@ static int cleanup(int code, Replay* replay) {
 
 // TODO: Reduce code duplication
 static int hpbar_parse(HPSequence** hp, char* string, size_t* hp_num) {
+	if(!string)
+		return 0;
+
 	size_t len = strlen(string);
 
 	int alloced_elements = 0;
@@ -155,10 +158,14 @@ static int frames_parse(ReplayFrame** frames, char* string, size_t* frame_num)  
 }
 
 int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx) {
+	replay->map_md5[0] = 0;
+	replay->replay_md5[0] = 0;
 	replay->player = NULL;
 	replay->hp = NULL;
+	replay->hp_num = 0;
 	replay->frames = NULL;
-	char devnull[512];
+	replay->frames_num = 0;
+	char tmp;
 
 #define CALLCHECK(dest, size, err) \
 	if((*callback)(ctx, (char*) dest, size)) { \
@@ -170,22 +177,28 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 
 	CALLCHECK_BSTREAM(&replay->mode, 1)
 	CALLCHECK_BSTREAM(&replay->version, 4)
-    // Skip identifier and uleb since we already know the length
-	CALLCHECK_BSTREAM(devnull, 2)
-	CALLCHECK_BSTREAM(replay->map_md5, 32)
-	replay->map_md5[32] = 0;
 
-	// And now the fun part
+	CALLCHECK_BSTREAM(&tmp, 1)
+	if(tmp == 11) {
+		CALLCHECK_BSTREAM(&tmp, 1)
+		if(tmp != 32)
+			return CIRCLES_ERROR_FILE_CORRUPTED;
+		CALLCHECK_BSTREAM(replay->map_md5, 32)
+		replay->map_md5[32] = 0;
+	}
 
 	int exitcode = circles_fpstring_parse(&replay->player, callback, ctx);
 	if(exitcode)
 		return cleanup(exitcode, replay);
 
-	// Same
-	CALLCHECK_BSTREAM(devnull, 2)
-
-	CALLCHECK_BSTREAM(replay->replay_md5, 32)
-	replay->replay_md5[32] = 0;
+	CALLCHECK_BSTREAM(&tmp, 1)
+	if(tmp == 11) {
+		CALLCHECK_BSTREAM(&tmp, 1)
+		if(tmp != 32)
+			return CIRCLES_ERROR_FILE_CORRUPTED;
+		CALLCHECK_BSTREAM(replay->replay_md5, 32)
+		replay->replay_md5[32] = 0;
+	}
 
 	CALLCHECK_BSTREAM(&replay->hit300, 2)
 	CALLCHECK_BSTREAM(&replay->hit100, 2)
@@ -213,6 +226,9 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	size_t lzma_size;
 	CALLCHECK_BSTREAM(&lzma_size, 4)
 
+	if(!lzma_size)
+		return 0; // Nothing to decompress and parse
+
 	char* lzma = (char*) malloc(lzma_size);
 	if(lzma == NULL)
 		return cleanup(CIRCLES_ERROR_ALLOC_FAILED, replay);
@@ -230,12 +246,10 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	ds.out = realloc(ds.out, ds.out_size + 1);
 	ds.out[ds.out_size] = 0;
 
-	exitcode = frames_parse(&replay->frames, (char*) ds.out, &replay->frame_num);
+	exitcode = frames_parse(&replay->frames, (char*) ds.out, &replay->frames_num);
 	if(exitcode)
 		return cleanup(exitcode, replay);
 
-#undef CALLCHECK_BSTREAM
-#undef CALLCHECK
 	return 0;
 }
 
