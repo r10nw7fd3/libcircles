@@ -1,5 +1,5 @@
 OUT=libcircles.so
-CFLAGS=-Wall -Wextra -std=c99 -O2 -fpic -Iinclude
+CFLAGS=-Wall -Wextra -std=c99 -O2 -fPIC -Iinclude
 PREFIX?=/usr/local
 
 SRC=$(wildcard src/*.c)
