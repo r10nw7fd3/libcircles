@@ -1,20 +1,25 @@
-OUT=libcircles.so
-CFLAGS=-Wall -Wextra -std=c99 -O2 -fPIC -Iinclude
-PREFIX?=/usr/local
+OUT:=libcircles.so
+CFLAGS:=-Wall -Wextra -std=c99 -O2 -fPIC -Iinclude
+PREFIX:=/usr/local
 
-SRC=$(wildcard src/*.c)
-OBJ=$(SRC:.c=.o)
+SRC:=$(wildcard src/*.c)
+OBJ:=$(subst src/,build/,$(SRC:.c=.o))
 
 all: $(OUT)
 
 $(OUT): $(OBJ)
 	$(CC) -shared -o $(OUT) $(OBJ) -leasylzma_s
 
-%.o: %.c
+$(OBJ): | build
+
+build:
+	mkdir $@
+
+build/%.o: src/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(OUT) $(OBJ)
+	rm -rf $(OUT) build
 
 install: all
 	cp $(OUT) $(PREFIX)/lib
