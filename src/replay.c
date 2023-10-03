@@ -168,9 +168,12 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	char tmp;
 
 #define CALLCHECK(dest, size, err) \
-	if((*callback)(ctx, (char*) dest, size)) { \
-		circles_replay_end(replay); \
-		return err; \
+	{ \
+		size_t size_var = size; \
+		if((*callback)(ctx, (char*) dest, &size_var) || size_var != size) { \
+			circles_replay_end(replay); \
+			return err; \
+		} \
 	}
 
 #define CALLCHECK_BSTREAM(dest, size) CALLCHECK(dest, size, CIRCLES_ERROR_BROKEN_STREAM)
@@ -270,10 +273,10 @@ void circles_replay_end(Replay* replay) {
 	}
 }
 
-static int _read_callback(void* ctx, char* buf, size_t size) {
+static int read_callback(void* ctx, char* buf, size_t* size) {
 	FILE* fp = (FILE*) ctx;
 
-	if(fread(buf, size, 1, fp) != 1)
+	if(fread(buf, *size, 1, fp) != 1)
 		return CIRCLES_ERROR_BROKEN_STREAM;
 
 	return 0;
@@ -284,7 +287,7 @@ int circles_replay_fromfile(Replay* replay, char* fname) {
 	if(fp == NULL)
 		return CIRCLES_ERROR_OPEN_FAILED;
 
-	int res = circles_replay_parse(replay, &_read_callback, (void*) fp);
+	int res = circles_replay_parse(replay, &read_callback, (void*) fp);
 	fclose(fp);
 
 	return res;

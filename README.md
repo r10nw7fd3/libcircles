@@ -37,13 +37,10 @@ circles_replay_fromfile(&replay, "test.osr"); // Returns 0 on success
 #### Callback
 
 ```c
-int read_callback(void* ctx, char* buf, size_t size) {
+int read_callback(void* ctx, char* buf, size_t* size) {
 	FILE* fp = (FILE*) ctx;
 
-	if(fread(buf, size, 1, fp) != 1)
-		return 1;
-
-	return 0;
+	return fread(buf, *size, 1, fp) != 1;
 }
 ```
 
@@ -54,7 +51,7 @@ FILE* fp = fopen("test.osr", "rb");
 Replay replay;
 circles_replay_parse(&replay, &read_callback, (void*) fp); // Returns 0 on success
 fclose(fp);
-// See src/replay.h for available attributes
+// See include/libcircles/replay.h for available attributes
 ```
 
 ### Dealloc

@@ -16,7 +16,7 @@ typedef struct {
 	int32_t keys;
 } ReplayFrame;
 
-typedef struct { // stdint types because why not
+typedef struct {
 	char mode;
 	int32_t version;
 	char map_md5[33];
@@ -34,15 +34,15 @@ typedef struct { // stdint types because why not
 	int32_t mods;
 	size_t hp_num; // Number of HPSequence elements
 	HPSequence* hp;
-	int64_t time; // Time in windows ticks, use circles_jesustime_to_unixms to convert this to unix timestamp
+	int64_t time; // Time in windows ticks, use circles_jesustime_to_unixms to convert this to unix millisecond timestamp
 	size_t frames_num; // Number of ReplayFrame elements
 	ReplayFrame* frames;
 	int32_t id;
 	int64_t mod_info;
 } Replay;
 
-int circles_replay_parse(Replay*, CirclesCallbackRead, void*);
-void circles_replay_end(Replay*);
-int circles_replay_fromfile(Replay*, char*);
+int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx);
+void circles_replay_end(Replay* replay);
+int circles_replay_fromfile(Replay* replay, char* filename);
 
 #endif

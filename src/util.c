@@ -21,9 +21,11 @@ unsigned int circles_uleb128_decode(int size, char* bytes) { // Stolen from http
 
 int circles_fpstring_parse(char** ptr, CirclesCallbackRead callback, void* ctx) {
 	char temp;
+	size_t temp_size;
 	char bytes[16];
 
-	if((*callback)(ctx, &temp, 1))
+	temp_size = 1;
+	if((*callback)(ctx, &temp, &temp_size) || temp_size != 1)
 		return CIRCLES_ERROR_BROKEN_STREAM;
 
 	if(temp != 11) {
@@ -33,7 +35,8 @@ int circles_fpstring_parse(char** ptr, CirclesCallbackRead callback, void* ctx) 
 
 	int i = 0;
 	do {
-		if((*callback)(ctx, &temp, 1))
+		temp_size = 1;
+		if((*callback)(ctx, &temp, &temp_size) || temp_size != 1)
 			return CIRCLES_ERROR_BROKEN_STREAM;
 		bytes[i] = temp;
 		i++;
@@ -44,7 +47,8 @@ int circles_fpstring_parse(char** ptr, CirclesCallbackRead callback, void* ctx) 
 	if(*ptr == NULL)
 		return CIRCLES_ERROR_ALLOC_FAILED;
 
-	if((*callback)(ctx, *ptr, len))
+	temp_size = len;
+	if((*callback)(ctx, *ptr, &temp_size) || temp_size != len)
 		return CIRCLES_ERROR_BROKEN_STREAM;
 
 	(*ptr)[len] = 0;

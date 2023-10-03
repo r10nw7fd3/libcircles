@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-typedef int (*CirclesCallbackRead)(void*, char*, size_t);
+typedef int (*CirclesCallbackRead)(void* ctx, char* buf, size_t* size);
 
 enum {
 	CIRCLES_MODE_STANDART,
@@ -22,8 +22,8 @@ enum {
 	CIRCLES_ERROR_UNKNOWN = 7,
 };
 
-unsigned int circles_uleb128_decode(int, char*);
-int circles_fpstring_parse(char**, CirclesCallbackRead, void*);
-long long circles_jesustime_to_unixms(long long);
+unsigned int circles_uleb128_decode(int size, char* bytes);
+int circles_fpstring_parse(char** dest, CirclesCallbackRead callback, void* ctx);
+long long circles_jesustime_to_unixms(long long time_in_ticks);
 
 #endif
