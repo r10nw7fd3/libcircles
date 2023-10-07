@@ -1,6 +1,10 @@
 #ifndef _LIBCIRCLES_REPLAY_H_
 #define _LIBCIRCLES_REPLAY_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include "util.h"
 
@@ -44,5 +48,9 @@ typedef struct {
 int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx);
 void circles_replay_end(Replay* replay);
 int circles_replay_fromfile(Replay* replay, const char* filename);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

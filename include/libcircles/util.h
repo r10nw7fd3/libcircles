@@ -1,6 +1,10 @@
 #ifndef _LIBCIRCLES_UTIL_H_
 #define _LIBCIRCLES_UTIL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 
 typedef int (*CirclesCallbackRead)(void* ctx, char* buf, size_t* size);
@@ -25,5 +29,9 @@ enum {
 unsigned int circles_uleb128_decode(int size, char* bytes);
 int circles_fpstring_parse(char** dest, CirclesCallbackRead callback, void* ctx);
 long long circles_jesustime_to_unixms(long long time_in_ticks);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
