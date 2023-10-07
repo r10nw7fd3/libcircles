@@ -282,7 +282,7 @@ static int read_callback(void* ctx, char* buf, size_t* size) {
 	return 0;
 }
 
-int circles_replay_fromfile(Replay* replay, char* fname) {
+int circles_replay_fromfile(Replay* replay, const char* fname) {
 	FILE* fp = fopen(fname, "rb");
 	if(fp == NULL)
 		return CIRCLES_ERROR_OPEN_FAILED;
