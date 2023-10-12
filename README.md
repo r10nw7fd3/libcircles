@@ -17,11 +17,10 @@ make
 
 ## Usage
 
-### Includes
+### Include
 
 ```c
 #include <libcircles/replay.h>
-#include <libcircles/util.h>
 ```
 
 ### Reading from file
