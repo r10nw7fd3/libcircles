@@ -26,9 +26,10 @@ make
 ### Reading from file
 
 ```c
-Replay replay;
+Replay* replay;
 circles_replay_fromfile(&replay, "test.osr"); // Returns 0 on success
-// See src/replay.h for available attributes
+// See include/libcircles/replay.h for available attributes
+circles_replay_end(&replay);
 ```
 
 ### Reading from wherever
@@ -47,14 +48,9 @@ int read_callback(void* ctx, char* buf, size_t* size) {
 
 ```c
 FILE* fp = fopen("test.osr", "rb");
-Replay replay;
+Replay* replay;
 circles_replay_parse(&replay, &read_callback, (void*) fp); // Returns 0 on success
 fclose(fp);
 // See include/libcircles/replay.h for available attributes
-```
-
-### Dealloc
-
-```c
 circles_replay_end(&replay);
 ```
