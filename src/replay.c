@@ -217,10 +217,13 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 
 	char* hp;
 	exitcode = circles_fpstring_parse(&hp, callback, ctx);
-	if(exitcode)
+	if(exitcode) {
+		free(hp);
 		return cleanup(exitcode, replay);
+	}
 
 	exitcode = hpbar_parse(&replay->hp, hp, &replay->hp_num);
+	free(hp);
 	if(exitcode)
 		return cleanup(exitcode, replay);
 
@@ -240,6 +243,7 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	DataStream ds;
 	ds.in_size = lzma_size;
 	ds.in = lzma;
+	ds.out = NULL;
 
 	int ret = circles_lzma_decompress(&ds);
 	if(ret)
@@ -250,6 +254,7 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	ds.out[ds.out_size] = 0;
 
 	exitcode = frames_parse(&replay->frames, (char*) ds.out, &replay->frames_num);
+	free(ds.out);
 	if(exitcode)
 		return cleanup(exitcode, replay);
 
