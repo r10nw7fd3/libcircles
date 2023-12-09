@@ -255,9 +255,11 @@ int circles_replay_parse(Replay** replay_dest, CirclesCallbackRead callback, voi
 	ds.out = NULL;
 
 	int ret = circles_lzma_decompress(&ds);
-	if(ret)
-		return cleanup(ret, replay_dest);
 	free(lzma);
+	if(ret) {
+		free(ds.out);
+		return cleanup(ret, replay_dest);
+	}
 	
 	ds.out = realloc(ds.out, ds.out_size + 1);
 	ds.out[ds.out_size] = 0;
