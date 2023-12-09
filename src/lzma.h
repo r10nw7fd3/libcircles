@@ -11,6 +11,6 @@ typedef struct {
 	char* out;
 } DataStream;
 
-int _lzma_decompress(DataStream*);
+int circles_lzma_decompress(DataStream*);
 
 #endif

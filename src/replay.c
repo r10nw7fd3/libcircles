@@ -241,7 +241,7 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	ds.in_size = lzma_size;
 	ds.in = lzma;
 
-	int ret = _lzma_decompress(&ds);
+	int ret = circles_lzma_decompress(&ds);
 	if(ret)
 		return cleanup(ret, replay);
 	free(lzma);

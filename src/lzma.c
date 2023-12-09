@@ -5,7 +5,7 @@
 #include <libcircles/util.h>
 
 // Stolen from https://github.com/lloyd/easylzma/blob/master/test/simple.c#L18
-static int _callback_in(void* ctx, void* buf, size_t* size) {
+static int callback_in(void* ctx, void* buf, size_t* size) {
 	DataStream* ds = (DataStream*) ctx;
 
 	size_t rd = 0;
@@ -21,7 +21,7 @@ static int _callback_in(void* ctx, void* buf, size_t* size) {
 	return 0;
 }
 
-static size_t _callback_out(void* ctx, const void* buf, size_t size) {
+static size_t callback_out(void* ctx, const void* buf, size_t size) {
 	DataStream* ds = (DataStream*) ctx;
 
 	if(size > 0) {
@@ -33,7 +33,7 @@ static size_t _callback_out(void* ctx, const void* buf, size_t size) {
 	return size;
 }
 
-int _lzma_decompress(DataStream* ds) {
+int circles_lzma_decompress(DataStream* ds) {
 	if(ds == NULL)
 		return 1;
 
@@ -45,7 +45,7 @@ int _lzma_decompress(DataStream* ds) {
 	if(handle == NULL)
 		return CIRCLES_ERROR_ALLOC_FAILED;
 
-	int ret = elzma_decompress_run(handle, _callback_in, (void*) ds, _callback_out, (void*) ds, ELZMA_lzma);
+	int ret = elzma_decompress_run(handle, callback_in, (void*) ds, callback_out, (void*) ds, ELZMA_lzma);
 	elzma_decompress_free(&handle);
 
 	if(ret != ELZMA_E_OK)
