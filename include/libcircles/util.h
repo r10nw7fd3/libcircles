@@ -24,6 +24,7 @@ enum {
 	CIRCLES_ERROR_LZMA = 5,
 	CIRCLES_ERROR_BROKEN_STREAM = 6,
 	CIRCLES_ERROR_UNKNOWN = 7,
+	CIRCLES_ERROR_INVALID_ARGUMENT = 8
 };
 
 unsigned int circles_uleb128_decode(int size, char* bytes);

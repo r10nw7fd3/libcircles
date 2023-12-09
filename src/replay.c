@@ -4,7 +4,7 @@
 #include <string.h>
 #include "lzma.h"
 
-static int cleanup(int code, Replay* replay) {
+static int cleanup(int code, Replay** replay) {
 	circles_replay_end(replay);
 	return code;
 }
@@ -157,7 +157,16 @@ static int frames_parse(ReplayFrame** frames, char* string, size_t* frame_num)  
 	return 0;
 }
 
-int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx) {
+int circles_replay_parse(Replay** replay_dest, CirclesCallbackRead callback, void* ctx) {
+	if(!replay_dest || !callback)
+		return CIRCLES_ERROR_INVALID_ARGUMENT;
+
+	*replay_dest = (Replay*) malloc(sizeof(Replay));
+	if(!*replay_dest)
+		return CIRCLES_ERROR_ALLOC_FAILED;
+
+	Replay* replay = *replay_dest;
+
 	replay->map_md5[0] = 0;
 	replay->replay_md5[0] = 0;
 	replay->player = NULL;
@@ -171,7 +180,7 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	{ \
 		size_t size_var = size; \
 		if((*callback)(ctx, (char*) dest, &size_var) || size_var != size) { \
-			circles_replay_end(replay); \
+			circles_replay_end(replay_dest); \
 			return err; \
 		} \
 	}
@@ -192,7 +201,7 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 
 	int exitcode = circles_fpstring_parse(&replay->player, callback, ctx);
 	if(exitcode)
-		return cleanup(exitcode, replay);
+		return cleanup(exitcode, replay_dest);
 
 	CALLCHECK_BSTREAM(&tmp, 1)
 	if(tmp == 11) {
@@ -219,13 +228,13 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	exitcode = circles_fpstring_parse(&hp, callback, ctx);
 	if(exitcode) {
 		free(hp);
-		return cleanup(exitcode, replay);
+		return cleanup(exitcode, replay_dest);
 	}
 
 	exitcode = hpbar_parse(&replay->hp, hp, &replay->hp_num);
 	free(hp);
 	if(exitcode)
-		return cleanup(exitcode, replay);
+		return cleanup(exitcode, replay_dest);
 
 	CALLCHECK_BSTREAM(&replay->time, 8)
 
@@ -237,7 +246,7 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 
 	char* lzma = (char*) malloc(lzma_size);
 	if(lzma == NULL)
-		return cleanup(CIRCLES_ERROR_ALLOC_FAILED, replay);
+		return cleanup(CIRCLES_ERROR_ALLOC_FAILED, replay_dest);
 	CALLCHECK_BSTREAM(lzma, lzma_size)
 
 	DataStream ds;
@@ -247,7 +256,7 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 
 	int ret = circles_lzma_decompress(&ds);
 	if(ret)
-		return cleanup(ret, replay);
+		return cleanup(ret, replay_dest);
 	free(lzma);
 	
 	ds.out = realloc(ds.out, ds.out_size + 1);
@@ -256,26 +265,23 @@ int circles_replay_parse(Replay* replay, CirclesCallbackRead callback, void* ctx
 	exitcode = frames_parse(&replay->frames, (char*) ds.out, &replay->frames_num);
 	free(ds.out);
 	if(exitcode)
-		return cleanup(exitcode, replay);
+		return cleanup(exitcode, replay_dest);
 
 	return 0;
 }
 
-void circles_replay_end(Replay* replay) {
-	if(replay->player != NULL) {
-		free(replay->player);
-		replay->player = NULL;
-	}
+void circles_replay_end(Replay** replay_dest) {
+	if(!replay_dest)
+		return;
 
-	if(replay->hp != NULL) {
-		free(replay->hp);
-		replay->hp = NULL;
-	}
+	Replay* replay = *replay_dest;
 
-	if(replay->frames != NULL) {
-		free(replay->frames);
-		replay->frames = NULL;
-	}
+	free(replay->player);
+	free(replay->hp);
+	free(replay->frames);
+
+	free(replay);
+	*replay_dest = NULL;
 }
 
 static int read_callback(void* ctx, char* buf, size_t* size) {
@@ -287,7 +293,7 @@ static int read_callback(void* ctx, char* buf, size_t* size) {
 	return 0;
 }
 
-int circles_replay_fromfile(Replay* replay, const char* fname) {
+int circles_replay_fromfile(Replay** replay, const char* fname) {
 	FILE* fp = fopen(fname, "rb");
 	if(fp == NULL)
 		return CIRCLES_ERROR_OPEN_FAILED;
