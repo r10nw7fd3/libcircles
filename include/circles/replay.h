@@ -38,16 +38,16 @@ typedef struct {
 	int32_t mods;
 	size_t hp_num; // Number of HPSequence elements
 	HPSequence* hp;
-	int64_t time; // Time in windows ticks, use circles_jesustime_to_unixms to convert this to unix millisecond timestamp
+	int64_t time; // Time in seconds since unix epoch
 	size_t frames_num; // Number of ReplayFrame elements
 	ReplayFrame* frames;
 	int32_t id;
 	int64_t mod_info;
 } Replay;
 
-int circles_replay_parse(Replay** replay, CirclesCallbackRead callback, void* ctx);
+CirclesError circles_replay_parse(Replay** replay, circles_read_fn_t callback, void* ctx);
+CirclesError circles_replay_parse_file(Replay** replay, const char* filename);
 void circles_replay_end(Replay** replay);
-int circles_replay_fromfile(Replay** replay, const char* filename);
 
 #ifdef __cplusplus
 }

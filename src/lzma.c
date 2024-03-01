@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <easylzma/decompress.h>
-#include <libcircles/util.h>
+#include <circles/util.h>
 
 // Stolen from https://github.com/lloyd/easylzma/blob/master/test/simple.c#L18
 static int callback_in(void* ctx, void* buf, size_t* size) {

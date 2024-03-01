@@ -1,4 +1,4 @@
-#include <libcircles/replay.h>
+#include <circles/replay.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -157,7 +157,7 @@ static int frames_parse(ReplayFrame** frames, char* string, size_t* frame_num)  
 	return 0;
 }
 
-int circles_replay_parse(Replay** replay_dest, CirclesCallbackRead callback, void* ctx) {
+CirclesError circles_replay_parse(Replay** replay_dest, circles_read_fn_t callback, void* ctx) {
 	if(!replay_dest || !callback)
 		return CIRCLES_ERROR_INVALID_ARGUMENT;
 
@@ -179,7 +179,7 @@ int circles_replay_parse(Replay** replay_dest, CirclesCallbackRead callback, voi
 #define CALLCHECK(dest, size, err) \
 	{ \
 		size_t size_var = size; \
-		if((*callback)(ctx, (char*) dest, &size_var) || size_var != size) { \
+		if((*callback)((char*) dest, &size_var, ctx) || size_var != size) { \
 			circles_replay_end(replay_dest); \
 			return err; \
 		} \
@@ -199,7 +199,7 @@ int circles_replay_parse(Replay** replay_dest, CirclesCallbackRead callback, voi
 		replay->map_md5[32] = 0;
 	}
 
-	int exitcode = circles_fpstring_parse(&replay->player, callback, ctx);
+	int exitcode = circles_binstring_decode(&replay->player, callback, ctx);
 	if(exitcode)
 		return cleanup(exitcode, replay_dest);
 
@@ -225,7 +225,7 @@ int circles_replay_parse(Replay** replay_dest, CirclesCallbackRead callback, voi
 	CALLCHECK_BSTREAM(&replay->mods, 4)
 
 	char* hp;
-	exitcode = circles_fpstring_parse(&hp, callback, ctx);
+	exitcode = circles_binstring_decode(&hp, callback, ctx);
 	if(exitcode) {
 		free(hp);
 		return cleanup(exitcode, replay_dest);
@@ -237,6 +237,7 @@ int circles_replay_parse(Replay** replay_dest, CirclesCallbackRead callback, voi
 		return cleanup(exitcode, replay_dest);
 
 	CALLCHECK_BSTREAM(&replay->time, 8)
+	replay->time = circles_jesustime_to_unix(replay->time);
 
 	size_t lzma_size;
 	CALLCHECK_BSTREAM(&lzma_size, 4)
@@ -286,7 +287,7 @@ void circles_replay_end(Replay** replay_dest) {
 	*replay_dest = NULL;
 }
 
-static int read_callback(void* ctx, char* buf, size_t* size) {
+static int read_callback(char* buf, size_t* size, void* ctx) {
 	FILE* fp = (FILE*) ctx;
 
 	if(fread(buf, *size, 1, fp) != 1)
@@ -295,7 +296,7 @@ static int read_callback(void* ctx, char* buf, size_t* size) {
 	return 0;
 }
 
-int circles_replay_fromfile(Replay** replay, const char* fname) {
+CirclesError circles_replay_parse_file(Replay** replay, const char* fname) {
 	FILE* fp = fopen(fname, "rb");
 	if(fp == NULL)
 		return CIRCLES_ERROR_OPEN_FAILED;
